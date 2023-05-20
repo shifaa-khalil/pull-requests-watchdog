@@ -5,6 +5,8 @@ use Illuminate\Support\ServiceProvider;
 
 return [
 
+    'github_token' => env('GITHUB_TOKEN'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Name
