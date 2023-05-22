@@ -24,7 +24,7 @@ class PRController extends Controller
         //     'Authorization' => 'Bearer ' . config('app.github_token'),
         // ])->get('https://api.github.com/repos/woocommerce/woocommerce/pulls');
 
-        $pullRequests = collect($response->json());
+        return $response->json();
 
         // $today = new DateTime();
         // // $today = $todayObj->format('Y-m-d');
@@ -38,7 +38,7 @@ class PRController extends Controller
         //     $diff = $interval->days;
         //     if($diff>4) $array[] = $PR;
         // });
-        return $pullRequests;
+        // return $pullRequests;
 
         // Process and filter the pull request data based on your requirements
         // ...
