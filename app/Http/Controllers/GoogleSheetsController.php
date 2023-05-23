@@ -2,33 +2,20 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\PRController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Revolution\Google\Sheets\Facades\Sheets;
-use Illuminate\Support\Facades\Session;
-use Google\Client as Google_Client;
-use Google\Service\Sheets as Google_Service_Sheets;
 
 class GoogleSheetsController extends Controller
 {
-    public function getDataFromGoogleSheet()
-    {
 
-        $response = Sheets::spreadsheet(config('google.post_spreadsheet_id'))
-        ->sheet('Sheet1')
-        ->all();
-
-        return $response;
-    }
-
-    public function addData(Request $request)
+    public function addData()
     {
         $prController = new PRController();
         $response = $prController->pullRequests();
         $pullRequests = $response['items'];
 
         Sheets::spreadsheet(config('google.post_spreadsheet_id'))
-        ->sheet('Sheet1')
+        ->sheet('OlderThan14days')
         ->clear();
 
         $firstRow[] = [
@@ -39,62 +26,145 @@ class GoogleSheetsController extends Controller
             'PR Created At'
         ];
         Sheets::spreadsheet(config('google.post_spreadsheet_id'))
-            ->sheet('Sheet1')
+            ->sheet('OlderThan14days')
             ->append($firstRow);
 
     foreach ($pullRequests as $pr) {
+        $date=substr($pr['created_at'], 0, 10);
+        $time=substr($pr['created_at'], 11, 8);
+
         $row[] = [
-            $pr['title'],
             $pr['number'],
+            $pr['title'],
             $pr['url'],
             $pr['html_url'],
-            $pr['created_at'],
+            $date.' '.$time,
         ];
         Sheets::spreadsheet(config('google.post_spreadsheet_id'))
-            ->sheet('Sheet1')
+            ->sheet('OlderThan14days')
             ->append($row);
+        $row = [];
+    }
+    return 'Data added successfully!';
     }
 
-    return $pullRequests;
-    }
-
-    public function authorize($ability, $arguments = [])
+    public function addReviewRequiredPR()
     {
-        $redirectUri = route('google-sheets.callback');
-        
-        $scopes = [
-            \Google_Service_Sheets::SPREADSHEETS_READONLY,
-            \Google_Service_Drive::DRIVE_READONLY,
+        $prController = new PRController();
+        $response = $prController->reviewRequiredPR();
+        $pullRequests = $response;
+
+        Sheets::spreadsheet(config('google.post_spreadsheet_id'))
+        ->sheet('ReviewsRequired')
+        ->clear();
+
+        $firstRow[] = [
+            'PR #',
+            'PR Title',
+            'PR URL',
+            'PR HTML_URL',
+            'PR Created At'
         ];
+        Sheets::spreadsheet(config('google.post_spreadsheet_id'))
+            ->sheet('ReviewsRequired')
+            ->append($firstRow);
 
-        $authorizationUrl = Sheets::getClient()->createAuthUrl($redirectUri, $scopes);
+    foreach ($pullRequests as $pr) {
+        $date=substr($pr['created_at'], 0, 10);
+        $time=substr($pr['created_at'], 11, 8);
 
-        return redirect($authorizationUrl);
+        $row[] = [
+            $pr['number'],
+            $pr['title'],
+            $pr['url'],
+            $pr['html_url'],
+            $date.' '.$time
+        ];
+        Sheets::spreadsheet(config('google.post_spreadsheet_id'))
+            ->sheet('ReviewsRequired')
+            ->append($row);
+        $row = [];
+    }
+    return 'Data added successfully!';
     }
 
-    public function handleCallback(Request $request)
-{
-    $authorizationCode = $request->get('code');
+    public function addStatusSuccessPR()
+    {
+        $prController = new PRController();
+        $response = $prController->statusSuccessPR();
+        $pullRequests = $response;
 
-    $tokens = Sheets::getClient()->fetchAccessTokenWithAuthCode($authorizationCode);
+        Sheets::spreadsheet(config('google.post_spreadsheet_id'))
+        ->sheet('StatusSuccess')
+        ->clear();
 
-$access_token = $tokens['access_token'];
-$refresh_token = $tokens['refresh_token'];
-$expires_in = $tokens['expires_in'];
-$created = time(); // Current timestamp
+        $firstRow[] = [
+            'PR #',
+            'PR Title',
+            'PR URL',
+            'PR HTML_URL',
+            'PR Created At'
+        ];
+        Sheets::spreadsheet(config('google.post_spreadsheet_id'))
+            ->sheet('StatusSuccess')
+            ->append($firstRow);
 
-session()->put('google_access_token', $access_token);
-session()->put('google_refresh_token', $refresh_token);
-session()->put('google_expires_in', $expires_in);
-session()->put('google_created', $created);
+    foreach ($pullRequests as $pr) {
+        $date=substr($pr['created_at'], 0, 10);
+        $time=substr($pr['created_at'], 11, 8);
 
-    // Open the Google Sheet in a new tab/window
-    $sheetId = '1JBUKT2c3k2L-Tr9bAvqgnWhwLv2AT3VCfqlBbG90SuA';
-    $url = "https://docs.google.com/spreadsheets/d/{$sheetId}";
-    echo "<script>window.open('{$url}', '_blank');</script>";
-}
+        $row[] = [
+            $pr['number'],
+            $pr['title'],
+            $pr['url'],
+            $pr['html_url'],
+            $date.' '.$time,
+        ];
+        Sheets::spreadsheet(config('google.post_spreadsheet_id'))
+            ->sheet('StatusSuccess')
+            ->append($row);
+        $row = [];
+    }
+    return 'Data added successfully!';
+    }
 
+    public function addNoReviewPR()
+    {
+        $prController = new PRController();
+        $response = $prController->noReviewPR();
+        $pullRequests = $response;
 
+        Sheets::spreadsheet(config('google.post_spreadsheet_id'))
+        ->sheet('NoReviews')
+        ->clear();
 
+        $firstRow[] = [
+            'PR #',
+            'PR Title',
+            'PR URL',
+            'PR HTML_URL',
+            'PR Created At'
+        ];
+        Sheets::spreadsheet(config('google.post_spreadsheet_id'))
+            ->sheet('NoReviews')
+            ->append($firstRow);
+
+    foreach ($pullRequests as $pr) {
+        $date=substr($pr['created_at'], 0, 10);
+        $time=substr($pr['created_at'], 11, 8);
+        $row[] = [
+            $pr['number'],
+            $pr['title'],
+            $pr['url'],
+            $pr['html_url'],
+            $date.' '.$time,
+        ];
+        Sheets::spreadsheet(config('google.post_spreadsheet_id'))
+            ->sheet('NoReviews')
+            ->append($row);
+        $row=[];
+    }
+    return 'Data added successfully!';
+    }
 }
 

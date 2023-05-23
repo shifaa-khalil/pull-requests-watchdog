@@ -2,9 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Collection;
 use DateTime;
 use DateInterval;
 
@@ -17,34 +15,13 @@ class PRController extends Controller
         $response = Http::withHeaders([
         'Accept' => 'application/vnd.github.v3+json',
         'Authorization' => 'Bearer ' . config('app.github_token'),
-        ])->get('https://api.github.com/search/issues?q=repo:woocommerce/woocommerce+is:pr+created:<'.$fourteenDaysAgo);
-
-        // $response = Http::withHeaders([
-        //     'Accept' => 'application/vnd.github.v3+json',
-        //     'Authorization' => 'Bearer ' . config('app.github_token'),
-        // ])->get('https://api.github.com/repos/woocommerce/woocommerce/pulls');
+        ])->get('https://api.github.com/search/issues', [
+            'q' => 'repo:woocommerce/woocommerce is:open is:pr created:<'.$fourteenDaysAgo,
+            'page' => 1,
+            'per_page' => 130,
+        ]);
 
         return $response->json();
-
-        // $today = new DateTime();
-        // // $today = $todayObj->format('Y-m-d');
-
-        // $array = [];
-
-        // $pullRequests->map(function ($PR) use (&$array, $today){
-        //     $date = new DateTime($PR['created_at']);
-        //     // $date = $date->format('Y-m-d');
-        //     $interval = $today->diff($date);
-        //     $diff = $interval->days;
-        //     if($diff>4) $array[] = $PR;
-        // });
-        // return $pullRequests;
-
-        // Process and filter the pull request data based on your requirements
-        // ...
-
-        // Return the filtered pull request data or redirect to a view
-        // ...
     }
 
     public function reviewRequiredPR()
@@ -52,10 +29,12 @@ class PRController extends Controller
         $response = Http::withHeaders([
             'Accept' => 'application/vnd.github.v3+json',
             'Authorization' => 'Bearer ' . config('app.github_token'),
-        ])->get('https://api.github.com/repos/woocommerce/woocommerce/pulls?q=is%3Apr+is%3Aopen+review%3Arequired');        
-        $pullRequests = collect($response->json());
-
-        return $pullRequests;
+        ])->get('https://api.github.com/repos/woocommerce/woocommerce/pulls', [
+            'q' => 'is%3Apr+is%3Aopen+review%3Arequired',
+            'page' => 1,
+            'per_page' => 130,
+        ]);       
+        return $response->json();
     }
 
     public function statusSuccessPR()
@@ -63,11 +42,13 @@ class PRController extends Controller
         $response = Http::withHeaders([
             'Accept' => 'application/vnd.github.v3+json',
             'Authorization' => 'Bearer ' . config('app.github_token'),
-        ])->get('https://api.github.com/repos/woocommerce/woocommerce/pulls?q=is%3Apr+is%3Aopen+status%3Asuccess');        
+            ])->get('https://api.github.com/repos/woocommerce/woocommerce/pulls', [
+                'q' => 'is%3Apr+is%3Aopen+status%3Asuccess',
+                'page' => 1,
+                'per_page' => 130,
+            ]);   
         
-        $pullRequests = collect($response->json());
-
-        return $pullRequests;
+        return $response->json();
     }
     
     public function noReviewPR()
@@ -75,8 +56,11 @@ class PRController extends Controller
         $response = Http::withHeaders([
             'Accept' => 'application/vnd.github.v3+json',
             'Authorization' => 'Bearer ' . config('app.github_token'),
-        ])->get('https://api.github.com/repos/woocommerce/woocommerce/pulls?q=is%3Apr+is%3Aopen+no%3Areview-requested');
-
+            ])->get('https://api.github.com/repos/woocommerce/woocommerce/pulls', [
+                'q' => 'is%3Apr+is%3Aopen+no%3Areview-requested',
+                'page' => 1,
+                'per_page' => 130,
+            ]);   
         return $response->json();
     }
 }
